@@ -33,14 +33,28 @@ movie_list = df_movies['title'].tolist()
 # ------ SESSION ------ #
 # Initialize movies, if there's no data stored in session #
 if 'user_ratings' not in st.session_state:
-    num_movies_to_show = 10
-    selected_movies = random.sample(movie_list, num_movies_to_show) if len(
-        movie_list) > num_movies_to_show else movie_list
+    # Set custom filters #
+    genre_columns = ['Romance', 'Action', 'Comedy', 'Thriller', 'Drama']
+    years_range = [1990, 2000, 2010, 2020]
 
+    # Loop through genres and years to gather movies to be rate #
+    selected_movies = set()
+    for genre in genre_columns:
+        for year in years_range:
+            filtered_movies = df_movies[(df_movies[genre] == 1) &
+                                        (df_movies['year'] >= year) &
+                                        (df_movies['year'] < year + 10)]
+            if not filtered_movies.empty:
+                sampled_movies = filtered_movies.sample(min(2, len(filtered_movies)))
+                selected_movies.update(sampled_movies['title'].tolist())
+
+    selected_movies = list(selected_movies)[:10]  # Ensure only 10 movies
+
+    # Initialize user ratings for the selected movies
     st.session_state['user_ratings'] = {movie: 5.0 for movie in selected_movies}
-
-# Else, load previous data #
-selected_movies = list(st.session_state['user_ratings'].keys())
+else:
+    # Else, load previous data #
+    selected_movies = list(st.session_state['user_ratings'].keys())
 
 ## --------------- STREAMLIT APP --------------- ##
 # ------ HEADER ------ #
